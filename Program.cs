@@ -30,6 +30,18 @@ builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 // The service handles user registration, login, password hashing, and JWT token generation.
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// Register the Gemini AI Service for dependency injection.
+// This tells ASP.NET: "Whenever a controller asks for IGeminiService, give it a GeminiService instance".
+// The service handles all communication with the Gemini API for recipe generation and modification.
+// AddScoped means a new instance is created per HTTP request.
+builder.Services.AddScoped<IGeminiService, GeminiService>();
+
+// Register HttpClient for dependency injection.
+// HttpClient is used by GeminiService to make API calls to the Gemini API.
+// AddHttpClient() registers it as a transient service (new instance each time it's injected).
+// Transient is appropriate for HttpClient since it's thread-safe and stateless.
+builder.Services.AddHttpClient();
+
 // Configure JWT (JSON Web Token) authentication.
 // This tells ASP.NET how to validate JWT tokens sent by clients.
 // When a client includes "Authorization: Bearer {token}" in a request,
