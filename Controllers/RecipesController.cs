@@ -59,6 +59,47 @@ public class RecipesController : ControllerBase
     }
 
     /// <summary>
+    /// GET /api/recipes/search
+    /// Searches and filters recipes based on optional query parameters.
+    ///
+    /// This endpoint allows flexible searching with optional filters that can be combined:
+    /// - name: searches recipe names (case-insensitive)
+    /// - ingredient: searches for recipes containing a specific ingredient (substring match)
+    /// - cuisineType: filters by cuisine type (exact match)
+    /// - maxPrepTime: finds recipes with prep time ≤ this value in minutes
+    ///
+    /// Examples:
+    /// GET /api/recipes/search?name=Pasta
+    /// GET /api/recipes/search?cuisineType=Thai&maxPrepTime=20
+    /// GET /api/recipes/search?ingredient=garlic&cuisineType=Italian
+    ///
+    /// HTTP Response Codes:
+    /// 200 OK - Returns list of matching recipes (empty list if no matches)
+    ///
+    /// [FromQuery] tells ASP.NET to read these values from the URL query string, not the request body.
+    /// All parameters are optional - they default to null if not provided.
+    /// </summary>
+    [HttpGet("search")]
+    public async Task<ActionResult<List<RecipeResponseDto>>> Search(
+        [FromQuery] string? name = null,
+        [FromQuery] string? ingredient = null,
+        [FromQuery] string? cuisineType = null,
+        [FromQuery] int? maxPrepTime = null
+    )
+    {
+        // Call the repository method to get filtered recipes
+        // We pass the optional parameters as-is; the repository handles null checks
+        var recipes = await _repository.SearchRecipesAsync(name, ingredient, cuisineType, maxPrepTime);
+
+        // Convert each Recipe model to a RecipeResponseDto
+        // This ensures we only return the API-facing fields, not internal database fields
+        var dtos = recipes.Select(MapToDto).ToList();
+
+        // Return 200 OK with the search results (even if empty)
+        return Ok(dtos);
+    }
+
+    /// <summary>
     /// GET /api/recipes/{id}
     /// Retrieves a single recipe by its ID.
     ///

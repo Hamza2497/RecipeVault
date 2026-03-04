@@ -55,4 +55,31 @@ public interface IRecipeRepository
     /// </summary>
     /// <param name="id">The ID of the recipe to delete.</param>
     Task DeleteAsync(int id);
+
+    /// <summary>
+    /// Searches for recipes based on optional filter parameters.
+    ///
+    /// This method demonstrates flexible filtering - each parameter is optional.
+    /// If a parameter is null or empty, that filter is skipped.
+    /// This allows callers to use any combination of filters.
+    ///
+    /// For example:
+    /// - SearchAsync("Pasta", null, null, null) finds recipes by name only
+    /// - SearchAsync(null, "garlic", "Italian", null) combines ingredient and cuisine filters
+    /// - SearchAsync(null, null, null, 30) finds recipes with prep time ≤ 30 minutes
+    ///
+    /// Why optional parameters? Flexibility. Different searches need different filters,
+    /// and having one method handle all combinations is cleaner than multiple overloads.
+    /// </summary>
+    /// <param name="name">Optional: Search for recipe name (case-insensitive partial match)</param>
+    /// <param name="ingredient">Optional: Search for ingredient substring in the ingredients list</param>
+    /// <param name="cuisineType">Optional: Filter by exact cuisine type match</param>
+    /// <param name="maxPrepTime">Optional: Filter for recipes with prep time ≤ this value (in minutes)</param>
+    /// <returns>A list of recipes matching the provided filters.</returns>
+    Task<List<Recipe>> SearchRecipesAsync(
+        string? name = null,
+        string? ingredient = null,
+        string? cuisineType = null,
+        int? maxPrepTime = null
+    );
 }
