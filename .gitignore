@@ -1,0 +1,37 @@
+# Local development configuration files - never commit these!
+# These files contain real API keys and secrets that should never be shared.
+appsettings.Development.json
+appsettings.*.json
+
+# Build results
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.so
+*.dylib
+
+# IDE files
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
+
+# User-specific files
+*.user
+*.userprefs
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
+# Environment files
+.env
+.env.local
