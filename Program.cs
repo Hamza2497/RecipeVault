@@ -86,6 +86,20 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Configure CORS (Cross-Origin Resource Sharing) to allow requests from the React frontend
+// This is necessary because the React app runs on a different origin (localhost:5173)
+// than the API (localhost:5159), so browsers block the requests by default.
+// CORS policy tells the browser: "These cross-origin requests are allowed."
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 // OpenAPI (Swagger) configuration for API documentation
 builder.Services.AddOpenApi();
 
@@ -136,6 +150,10 @@ if (app.Environment.IsDevelopment())
 
 // Enable HTTPS redirection for security
 app.UseHttpsRedirection();
+
+// Use CORS middleware - must come BEFORE authentication and authorization
+// This applies the CORS policy we defined above and tells browsers to allow the requests
+app.UseCors("AllowReactApp");
 
 // Add authentication middleware to the pipeline.
 // This must come BEFORE UseAuthorization().
