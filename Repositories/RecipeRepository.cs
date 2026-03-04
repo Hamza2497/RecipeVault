@@ -165,4 +165,86 @@ public class RecipeRepository : IRecipeRepository
         // ToListAsync() sends the final query to the database and returns the results as a List
         return await query.ToListAsync();
     }
+
+    /// <summary>
+    /// Updates a recipe's status after verifying the user owns the recipe.
+    ///
+    /// Steps:
+    /// 1. Query the database for a recipe matching both the ID and the user ID
+    /// 2. If not found, return false (either the recipe doesn't exist or the user doesn't own it)
+    /// 3. If found, update the Status field and save
+    /// 4. Return true to indicate success
+    ///
+    /// Key security principle: We check BOTH the recipe ID and the user ID in the WHERE clause.
+    /// This prevents users from modifying recipes they don't own, even if they somehow
+    /// know the recipe ID. This is called "ownership verification" and is critical for multi-user apps.
+    /// </summary>
+    public async Task<bool> UpdateStatusAsync(int recipeId, string? status, int userId)
+    {
+        // Find the recipe by ID and verify it belongs to the requesting user
+        // FirstOrDefaultAsync returns null if no match is found
+        var recipe = await _context.Recipes.FirstOrDefaultAsync(r => r.Id == recipeId && r.UserId == userId);
+
+        // If the recipe doesn't exist or doesn't belong to this user, return false
+        if (recipe == null)
+        {
+            return false;
+        }
+
+        // Update the status field
+        recipe.Status = status;
+
+        // Save the changes to the database
+        await _context.SaveChangesAsync();
+
+        // Return true to indicate the update was successful
+        return true;
+    }
+
+    /// <summary>
+    /// Updates a recipe's visibility (public/private) after verifying the user owns the recipe.
+    ///
+    /// Steps:
+    /// 1. Query the database for a recipe matching both the ID and the user ID
+    /// 2. If not found, return false (either the recipe doesn't exist or the user doesn't own it)
+    /// 3. If found, update the IsPublic field and save
+    /// 4. Return true to indicate success
+    ///
+    /// This method follows the same ownership verification pattern as UpdateStatusAsync.
+    /// Only the recipe owner can change whether their recipe is public or private.
+    /// </summary>
+    public async Task<bool> UpdateVisibilityAsync(int recipeId, bool isPublic, int userId)
+    {
+        // Find the recipe by ID and verify it belongs to the requesting user
+        var recipe = await _context.Recipes.FirstOrDefaultAsync(r => r.Id == recipeId && r.UserId == userId);
+
+        // If the recipe doesn't exist or doesn't belong to this user, return false
+        if (recipe == null)
+        {
+            return false;
+        }
+
+        // Update the IsPublic field
+        recipe.IsPublic = isPublic;
+
+        // Save the changes to the database
+        await _context.SaveChangesAsync();
+
+        // Return true to indicate the update was successful
+        return true;
+    }
+
+    /// <summary>
+    /// Retrieves all recipes marked as public.
+    ///
+    /// This is a simple query that filters recipes where IsPublic == true.
+    /// Unlike other repository methods, this doesn't check user ID because
+    /// the whole point is to make these recipes visible to everyone.
+    ///
+    /// This endpoint is used by the public endpoint that doesn't require authentication.
+    /// </summary>
+    public async Task<List<Recipe>> GetPublicRecipesAsync()
+    {
+        return await _context.Recipes.Where(r => r.IsPublic).ToListAsync();
+    }
 }

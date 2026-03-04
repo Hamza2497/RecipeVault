@@ -82,4 +82,45 @@ public interface IRecipeRepository
         string? cuisineType = null,
         int? maxPrepTime = null
     );
+
+    /// <summary>
+    /// Updates a recipe's status with ownership verification.
+    ///
+    /// This method finds a recipe by ID and verifies it belongs to the requesting user
+    /// before updating the Status field. This ensures users can only modify their own recipes.
+    ///
+    /// The Status field should be one of: "favourite", "to-try", "made-before", or null to clear.
+    /// </summary>
+    /// <param name="recipeId">The ID of the recipe to update</param>
+    /// <param name="status">The new status value (should be "favourite", "to-try", "made-before", or null)</param>
+    /// <param name="userId">The ID of the requesting user (for ownership verification)</param>
+    /// <returns>True if the recipe was updated successfully; false if not found or user doesn't own it</returns>
+    Task<bool> UpdateStatusAsync(int recipeId, string? status, int userId);
+
+    /// <summary>
+    /// Updates a recipe's visibility (public/private) with ownership verification.
+    ///
+    /// This method finds a recipe by ID and verifies it belongs to the requesting user
+    /// before updating the IsPublic field. This ensures users can only change visibility
+    /// on their own recipes.
+    ///
+    /// When IsPublic is true, the recipe will appear in the public recipes endpoint.
+    /// When IsPublic is false, only the owner can see the recipe.
+    /// </summary>
+    /// <param name="recipeId">The ID of the recipe to update</param>
+    /// <param name="isPublic">Whether the recipe should be publicly visible (true) or private (false)</param>
+    /// <param name="userId">The ID of the requesting user (for ownership verification)</param>
+    /// <returns>True if the recipe was updated successfully; false if not found or user doesn't own it</returns>
+    Task<bool> UpdateVisibilityAsync(int recipeId, bool isPublic, int userId);
+
+    /// <summary>
+    /// Retrieves all recipes that are marked as public.
+    ///
+    /// This endpoint is accessible to all users (authenticated or not) and returns
+    /// a list of recipes that the recipe owners have shared publicly.
+    ///
+    /// This allows recipe discovery and sharing without requiring user authentication.
+    /// </summary>
+    /// <returns>A list of all recipes where IsPublic == true</returns>
+    Task<List<Recipe>> GetPublicRecipesAsync();
 }
