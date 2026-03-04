@@ -1,0 +1,5 @@
+/* Tailwind CSS v4 import syntax - includes base, components, and utilities */
+@import "tailwindcss";
+
+/* Enable dark mode via class selector for Tailwind v4 */
+@variant dark (&:where(.dark, .dark *));
