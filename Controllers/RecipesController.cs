@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RecipeVault.DTOs;
 using RecipeVault.Models;
@@ -18,9 +20,14 @@ namespace RecipeVault.Controllers;
 ///
 /// This controller uses dependency injection to receive IRecipeRepository.
 /// The DI container automatically provides a RecipeRepository instance.
+///
+/// Security:
+/// [Authorize] - all endpoints in this controller require a valid JWT token
+/// Only authenticated users (with a valid token) can access recipe operations.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class RecipesController : ControllerBase
 {
     /// <summary>
@@ -127,7 +134,7 @@ public class RecipesController : ControllerBase
 
     /// <summary>
     /// POST /api/recipes
-    /// Creates a new recipe.
+    /// Creates a new recipe for the authenticated user.
     ///
     /// The request body must contain a CreateRecipeDto JSON object.
     /// Example: {"name": "Pasta", "description": "Italian pasta dish", ...}
@@ -135,12 +142,31 @@ public class RecipesController : ControllerBase
     /// HTTP Response Codes:
     /// 201 Created - Recipe created successfully, returns the created recipe
     /// 400 Bad Request - Invalid request (validation failed)
+    /// 401 Unauthorized - User not authenticated (no valid JWT token)
     ///
     /// [FromBody] tells ASP.NET to deserialize the JSON request body into the DTO
     /// </summary>
     [HttpPost]
     public async Task<ActionResult<RecipeResponseDto>> Create([FromBody] CreateRecipeDto createDto)
     {
+        // Extract the authenticated user's ID from the JWT token claims.
+        //
+        // How it works:
+        // 1. The [Authorize] attribute validates the JWT token
+        // 2. ASP.NET extracts the claims (Id, Username, Email) from the token
+        // 3. These claims are stored in User.Claims (available in every authenticated request)
+        // 4. We look for the NameIdentifier claim, which contains the user's ID
+        //
+        // NameIdentifier is a standard claim type for user IDs in .NET.
+        // It was set when we generated the JWT token in AuthService.GenerateJwtToken().
+        string? userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        // If the claim doesn't exist, something went wrong - return an error
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized(new { message = "Invalid token - user ID not found" });
+        }
+
         // Convert the DTO to a Recipe model
         var recipe = new Recipe
         {
@@ -153,8 +179,8 @@ public class RecipesController : ControllerBase
             CookTimeMinutes = createDto.CookTimeMinutes,
             Servings = createDto.Servings,
             ImageUrl = createDto.ImageUrl,
-            // TODO: Replace with actual authenticated user's ID in Step 5
-            UserId = 1, // Hardcoded for now - will use current user's ID after auth is implemented
+            // Use the actual authenticated user's ID from the JWT token
+            UserId = userId,
             CreatedAt = DateTime.UtcNow
         };
 

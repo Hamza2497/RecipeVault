@@ -1,7 +1,11 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using RecipeVault.Data;
 using RecipeVault.Models;
 using RecipeVault.Repositories;
+using RecipeVault.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +24,55 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // AddScoped means a new instance is created per HTTP request, which is ideal for database operations.
 // The repository uses the registered AppDbContext internally.
 builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
+
+// Register the Authentication Service for dependency injection.
+// This tells ASP.NET: "Whenever a controller asks for IAuthService, give it an AuthService instance".
+// The service handles user registration, login, password hashing, and JWT token generation.
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Configure JWT (JSON Web Token) authentication.
+// This tells ASP.NET how to validate JWT tokens sent by clients.
+// When a client includes "Authorization: Bearer {token}" in a request,
+// ASP.NET will validate the token using these settings.
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+string secretKey = jwtSettings["SecretKey"]
+    ?? throw new InvalidOperationException("JWT SecretKey not configured in appsettings.json");
+
+// Convert the secret string to bytes for the security algorithm
+var key = Encoding.UTF8.GetBytes(secretKey);
+
+// AddAuthentication() registers authentication services (the foundation)
+// AddJwtBearer() configures JWT specifically
+builder.Services.AddAuthentication(options =>
+{
+    // Set JWT as the default authentication scheme
+    // This means: "When we need to check if a request is authenticated, use JWT"
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        // Validate the signing key (is it signed with our secret?)
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+
+        // Validate the issuer (who created the token?)
+        ValidateIssuer = true,
+        ValidIssuer = jwtSettings["Issuer"],
+
+        // Validate the audience (who is this token for?)
+        ValidateAudience = true,
+        ValidAudience = jwtSettings["Audience"],
+
+        // Validate the expiration time (is the token still valid?)
+        ValidateLifetime = true,
+
+        // Allow a 5-second clock skew in case server clocks are slightly out of sync
+        ClockSkew = TimeSpan.FromSeconds(5)
+    };
+});
 
 // OpenAPI (Swagger) configuration for API documentation
 builder.Services.AddOpenApi();
@@ -71,6 +124,16 @@ if (app.Environment.IsDevelopment())
 
 // Enable HTTPS redirection for security
 app.UseHttpsRedirection();
+
+// Add authentication middleware to the pipeline.
+// This must come BEFORE UseAuthorization().
+// Authentication identifies who the user is (validates JWT token).
+app.UseAuthentication();
+
+// Add authorization middleware to the pipeline.
+// This must come AFTER UseAuthentication().
+// Authorization checks if the authenticated user has permission (checks [Authorize] attributes).
+app.UseAuthorization();
 
 // Map controller routes - this tells the app to use controllers we create
 app.MapControllers();
