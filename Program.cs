@@ -94,7 +94,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(
+            "http://localhost:5173",
+            "https://recipe-vault-6zb3x7myi-hamza2497s-projects.vercel.app",
+            "https://recipe-vault.vercel.app"
+        )
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
