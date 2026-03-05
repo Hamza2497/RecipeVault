@@ -83,6 +83,24 @@ export function Navbar() {
                 </button>
               </div>
             )}
+
+            {/* Login and Register buttons (only when not logged in) */}
+            {!isAuthenticated && (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => navigate('/login')}
+                  className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition text-sm font-medium"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => navigate('/register')}
+                  className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 text-white transition text-sm font-medium"
+                >
+                  Register
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

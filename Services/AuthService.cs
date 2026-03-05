@@ -82,8 +82,12 @@ public class AuthService : IAuthService
         return new AuthResponseDto
         {
             Token = token,
-            Username = newUser.Username,
-            Email = newUser.Email
+            User = new UserDto
+            {
+                Id = newUser.Id,
+                Username = newUser.Username,
+                Email = newUser.Email
+            }
         };
     }
 
@@ -121,8 +125,12 @@ public class AuthService : IAuthService
         return new AuthResponseDto
         {
             Token = token,
-            Username = user.Username,
-            Email = user.Email
+            User = new UserDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email
+            }
         };
     }
 

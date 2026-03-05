@@ -1,7 +1,11 @@
 import { useState, useEffect, useCallback, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api/axios';
+
+// API base URL for unauthenticated requests
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5159/api';
 
 /*
  * RecipeDetailPage displays a single recipe with full details, AI features, and management options.
@@ -25,7 +29,8 @@ import api from '../api/axios';
 export function RecipeDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
+  const { user, token } = useContext(AuthContext);
+  const isLoggedIn = !!token;
 
   // Recipe state
   const [recipe, setRecipe] = useState(null);
@@ -61,15 +66,21 @@ export function RecipeDetailPage() {
     setRecipeError('');
 
     try {
-      const response = await api.get(`/recipes/${id}`);
-      setRecipe(response.data);
+      // Use plain axios with full URL for unauthenticated users, configured api for authenticated users
+      if (isLoggedIn) {
+        const response = await api.get(`/recipes/${id}`);
+        setRecipe(response.data);
+      } else {
+        const response = await axios.get(`${API_BASE_URL}/recipes/public/${id}`);
+        setRecipe(response.data);
+      }
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Failed to load recipe. Please try again.';
       setRecipeError(errorMessage);
     } finally {
       setIsLoadingRecipe(false);
     }
-  }, [id]);
+  }, [id, isLoggedIn]);
 
   useEffect(() => {
     fetchRecipe();
@@ -238,8 +249,8 @@ export function RecipeDetailPage() {
     }
   };
 
-  // Always show controls (ownership check will be added later with proper field names)
-  const isOwnRecipe = true;
+  // Check if user owns the recipe
+  const isOwnRecipe = isLoggedIn && user && recipe && recipe.userId === user.id;
 
   // Loading state
   if (isLoadingRecipe) {
@@ -529,7 +540,8 @@ export function RecipeDetailPage() {
             )}
           </div>
 
-          {/* AI Panel */}
+          {/* AI Panel - only show for logged in users */}
+          {isLoggedIn && (
           <div className="bg-gradient-to-br from-indigo-50 to-indigo-25 dark:from-indigo-900/20 dark:to-slate-800/50 rounded-lg border border-indigo-200 dark:border-indigo-800/50 overflow-hidden">
             <div className="bg-indigo-100 dark:bg-indigo-900/30 px-4 py-3 border-b border-indigo-200 dark:border-indigo-800/50">
               <h3 className="text-lg font-semibold text-indigo-900 dark:text-indigo-100">
@@ -800,6 +812,7 @@ export function RecipeDetailPage() {
               </div>
             </div>
           </div>
+          )}
         </div>
       </div>
     </div>

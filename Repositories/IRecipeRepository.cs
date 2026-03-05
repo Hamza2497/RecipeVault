@@ -123,4 +123,17 @@ public interface IRecipeRepository
     /// </summary>
     /// <returns>A list of all recipes where IsPublic == true</returns>
     Task<List<Recipe>> GetPublicRecipesAsync();
+
+    /// <summary>
+    /// Retrieves a single public recipe by ID.
+    ///
+    /// This method allows unauthenticated users to view a specific public recipe.
+    /// Returns the recipe only if it exists and IsPublic == true.
+    /// Returns null if the recipe doesn't exist or is marked as private.
+    ///
+    /// This enables direct access to public recipes by ID without requiring authentication.
+    /// </summary>
+    /// <param name="id">The recipe ID to look up.</param>
+    /// <returns>The recipe if found and public; null otherwise.</returns>
+    Task<Recipe?> GetPublicByIdAsync(int id);
 }

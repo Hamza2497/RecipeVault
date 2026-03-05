@@ -43,9 +43,11 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
 
+            {/* Public routes */}
+            <Route path="/" element={<RecipeListPage />} />
+            <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+
             {/* Protected routes */}
-            <Route path="/" element={<ProtectedRoute component={RecipeListPage} />} />
-            <Route path="/recipes/:id" element={<ProtectedRoute component={RecipeDetailPage} />} />
             <Route path="/recipes/new" element={<ProtectedRoute component={AddEditRecipePage} />} />
             <Route path="/recipes/:id/edit" element={<ProtectedRoute component={AddEditRecipePage} />} />
 

@@ -247,4 +247,18 @@ public class RecipeRepository : IRecipeRepository
     {
         return await _context.Recipes.Where(r => r.IsPublic).ToListAsync();
     }
+
+    /// <summary>
+    /// Retrieves a single public recipe by ID.
+    ///
+    /// This method allows unauthenticated users to view a specific public recipe.
+    /// Queries the database for a recipe matching both the ID and IsPublic == true.
+    /// Returns null if the recipe doesn't exist or is marked as private.
+    ///
+    /// This is used by the public recipe endpoint that doesn't require authentication.
+    /// </summary>
+    public async Task<Recipe?> GetPublicByIdAsync(int id)
+    {
+        return await _context.Recipes.FirstOrDefaultAsync(r => r.Id == id && r.IsPublic);
+    }
 }

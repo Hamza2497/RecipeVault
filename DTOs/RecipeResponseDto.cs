@@ -18,6 +18,11 @@ public class RecipeResponseDto
     public int Id { get; set; }
 
     /// <summary>
+    /// The user ID of the recipe owner.
+    /// </summary>
+    public int UserId { get; set; }
+
+    /// <summary>
     /// The recipe name.
     /// </summary>
     public required string Name { get; set; }

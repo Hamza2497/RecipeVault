@@ -197,6 +197,44 @@ public class RecipesController : ControllerBase
     }
 
     /// <summary>
+    /// GET /api/recipes/public/{id}
+    /// Retrieves a single public recipe by ID without requiring authentication.
+    ///
+    /// This endpoint allows unauthenticated users to view a specific public recipe.
+    /// Returns the recipe only if it exists and IsPublic == true.
+    ///
+    /// This enables direct access to public recipes by URL without requiring login,
+    /// allowing users to share recipe links with others and view specific recipes.
+    ///
+    /// Security: This endpoint does NOT require authentication ([AllowAnonymous]).
+    /// Only recipes where IsPublic == true can be accessed through this endpoint.
+    /// Private recipes (IsPublic == false) return 404 Not Found.
+    ///
+    /// HTTP Response Codes:
+    /// 200 OK - Returns the public recipe
+    /// 404 Not Found - If the recipe doesn't exist or is marked as private
+    ///
+    /// {id} is a route parameter: /api/recipes/public/5 → id = 5
+    /// </summary>
+    [HttpGet("public/{id}")]
+    [AllowAnonymous]
+    public async Task<ActionResult<RecipeResponseDto>> GetPublicById(int id)
+    {
+        // Fetch the public recipe from the repository
+        // The repository returns null if the recipe doesn't exist or isn't public
+        var recipe = await _repository.GetPublicByIdAsync(id);
+
+        // If the recipe doesn't exist or is private, return 404 Not Found
+        if (recipe == null)
+        {
+            return NotFound();
+        }
+
+        // Convert and return the recipe
+        return Ok(MapToDto(recipe));
+    }
+
+    /// <summary>
     /// GET /api/recipes/{id}
     /// Retrieves a single recipe by its ID, if it belongs to the authenticated user.
     ///
@@ -519,6 +557,7 @@ public class RecipesController : ControllerBase
         return new RecipeResponseDto
         {
             Id = recipe.Id,
+            UserId = recipe.UserId,
             Name = recipe.Name,
             Description = recipe.Description,
             Ingredients = recipe.Ingredients,

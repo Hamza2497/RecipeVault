@@ -22,8 +22,10 @@ import api from '../api/axios';
 export function RecipeListPage() {
   const navigate = useNavigate();
   const { token } = useContext(AuthContext);
+  const isLoggedIn = !!token;
 
-  const [activeTab, setActiveTab] = useState('my-recipes'); // 'my-recipes' or 'public'
+  // Default to public tab if not logged in
+  const [activeTab, setActiveTab] = useState(isLoggedIn ? 'my-recipes' : 'public');
   const [recipes, setRecipes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -117,37 +119,41 @@ export function RecipeListPage() {
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           Recipes
         </h1>
-        <button
-          onClick={() => navigate('/recipes/new')}
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium rounded-lg transition"
-        >
-          + Add Recipe
-        </button>
+        {isLoggedIn && (
+          <button
+            onClick={() => navigate('/recipes/new')}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium rounded-lg transition"
+          >
+            + Add Recipe
+          </button>
+        )}
       </div>
 
-      {/* Tab navigation */}
-      <div className="flex gap-4 mb-6 border-b border-gray-200 dark:border-slate-700">
-        <button
-          onClick={() => setActiveTab('my-recipes')}
-          className={`px-4 py-2 font-medium transition border-b-2 ${
-            activeTab === 'my-recipes'
-              ? 'border-indigo-600 dark:border-indigo-500 text-indigo-600 dark:text-indigo-400'
-              : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300'
-          }`}
-        >
-          My Recipes
-        </button>
-        <button
-          onClick={() => setActiveTab('public')}
-          className={`px-4 py-2 font-medium transition border-b-2 ${
-            activeTab === 'public'
-              ? 'border-indigo-600 dark:border-indigo-500 text-indigo-600 dark:text-indigo-400'
-              : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300'
-          }`}
-        >
-          Public Recipes
-        </button>
-      </div>
+      {/* Tab navigation - only show for logged in users */}
+      {isLoggedIn && (
+        <div className="flex gap-4 mb-6 border-b border-gray-200 dark:border-slate-700">
+          <button
+            onClick={() => setActiveTab('my-recipes')}
+            className={`px-4 py-2 font-medium transition border-b-2 ${
+              activeTab === 'my-recipes'
+                ? 'border-indigo-600 dark:border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300'
+            }`}
+          >
+            My Recipes
+          </button>
+          <button
+            onClick={() => setActiveTab('public')}
+            className={`px-4 py-2 font-medium transition border-b-2 ${
+              activeTab === 'public'
+                ? 'border-indigo-600 dark:border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300'
+            }`}
+          >
+            Public Recipes
+          </button>
+        </div>
+      )}
 
       {/* Search and filter section */}
       <div className="mb-8 space-y-4">
