@@ -140,6 +140,78 @@ using (var scope = app.Services.CreateScope())
         context.Users.Add(testUser);
         context.SaveChanges();
     }
+
+    // Database Seeder: Initialize the database with sample recipes on startup
+    // This follows the same idempotent pattern as user seeding - only inserts if no recipes exist.
+    if (!context.Recipes.Any())
+    {
+        var sampleRecipes = new List<Recipe>
+        {
+            new Recipe
+            {
+                Name = "Spicy Thai Basil Chicken",
+                Description = "A vibrant and aromatic Thai stir-fry featuring succulent chicken with fresh basil and a spicy kick.",
+                CuisineType = "Thai",
+                PrepTimeMinutes = 10,
+                CookTimeMinutes = 15,
+                Servings = 2,
+                Status = "favourite",
+                IsPublic = true,
+                ImageUrl = "https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=1080",
+                UserId = 1,
+                Ingredients = "500g chicken breast (diced), 3 cloves garlic (minced), 2 red chilies (sliced), 1 cup fresh Thai basil, 3 tbsp fish sauce, 2 tbsp vegetable oil, 1 tbsp lime juice, 2 tbsp palm sugar, 200ml coconut milk",
+                Instructions = "Heat oil in a wok or large skillet over high heat.\nAdd minced garlic and sliced chilies, stir-fry for 30 seconds.\nAdd diced chicken and cook until golden, about 5-7 minutes.\nAdd fish sauce, palm sugar, and coconut milk. Simmer for 3-4 minutes.\nAdd fresh Thai basil leaves and lime juice, toss gently.\nServe hot with jasmine rice."
+            },
+            new Recipe
+            {
+                Name = "Classic Margherita Pizza",
+                Description = "A timeless Italian favorite with fresh mozzarella, ripe tomatoes, basil, and olive oil on a crispy crust.",
+                CuisineType = "Italian",
+                PrepTimeMinutes = 20,
+                CookTimeMinutes = 25,
+                Servings = 4,
+                Status = "made-before",
+                IsPublic = true,
+                ImageUrl = "https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?w=1080",
+                UserId = 1,
+                Ingredients = "500g pizza dough, 400g canned tomatoes, 300g fresh mozzarella, 30g fresh basil, 3 cloves garlic, 60ml olive oil, salt to taste, black pepper to taste",
+                Instructions = "Preheat oven to 220°C (425°F).\nPress pizza dough onto a baking sheet or pizza stone.\nCrush canned tomatoes and spread over the dough, leaving a 1cm border.\nMinced garlic can be scattered over the sauce.\nDrizzle with olive oil and season with salt and pepper.\nBake for 15-18 minutes until the crust is golden.\nRemove from oven and tear fresh mozzarella over the top.\nAdd fresh basil leaves, drizzle with more olive oil if desired.\nServe hot."
+            },
+            new Recipe
+            {
+                Name = "Creamy Mushroom Risotto",
+                Description = "A luxurious and creamy Italian rice dish loaded with tender mushrooms and finished with Parmesan cheese.",
+                CuisineType = "Italian",
+                PrepTimeMinutes = 10,
+                CookTimeMinutes = 35,
+                Servings = 4,
+                Status = "to-try",
+                IsPublic = true,
+                ImageUrl = "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=1080",
+                UserId = 1,
+                Ingredients = "300g Arborio rice, 400g mixed mushrooms (sliced), 1 liter vegetable or chicken stock (warm), 1 onion (finely diced), 3 cloves garlic (minced), 150ml dry white wine, 100g Parmesan cheese (grated), 50g butter, 3 tbsp olive oil, salt to taste, black pepper to taste, fresh parsley for garnish",
+                Instructions = "Heat olive oil in a large pan and sauté mushrooms until golden. Set aside.\nIn the same pan, heat butter and olive oil. Add diced onion and cook until soft, about 3 minutes.\nAdd minced garlic and cook for 1 minute.\nAdd Arborio rice and stir for 2-3 minutes to coat with oil.\nPour in white wine and stir until absorbed.\nAdd warm stock one ladle at a time, stirring constantly and waiting for each ladle to be absorbed before adding the next (about 18-20 minutes total).\nAdd mushrooms back in for the last 5 minutes of cooking.\nRemove from heat and stir in Parmesan cheese and remaining butter.\nSeason with salt and pepper. Garnish with fresh parsley and serve immediately."
+            },
+            new Recipe
+            {
+                Name = "Chicken Caesar Salad",
+                Description = "A hearty and satisfying salad with grilled chicken, crisp romaine lettuce, and a classic creamy Caesar dressing.",
+                CuisineType = "American",
+                PrepTimeMinutes = 15,
+                CookTimeMinutes = 10,
+                Servings = 2,
+                Status = "favourite",
+                IsPublic = true,
+                ImageUrl = "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=1080",
+                UserId = 1,
+                Ingredients = "350g chicken breast, 2 romaine lettuce heads (chopped), 50g Parmesan cheese (grated), 100g croutons, 3 cloves garlic (minced), 2 tbsp mayonnaise, 1 tbsp Dijon mustard, 2 tbsp lemon juice, 1 tbsp Worcestershire sauce, 2 anchovy fillets (optional), 3 tbsp olive oil, salt and pepper to taste",
+                Instructions = "Season chicken breast with salt and pepper.\nHeat 2 tbsp olive oil in a skillet over medium-high heat and cook chicken for 5-6 minutes per side until cooked through.\nLet chicken cool for a few minutes, then slice.\nPrepare Caesar dressing: blend or mix minced garlic, mayonnaise, Dijon mustard, lemon juice, Worcestershire sauce, anchovies (if using), and 1 tbsp olive oil. Season with salt and pepper.\nToss chopped romaine lettuce with Caesar dressing.\nTop with sliced chicken, grated Parmesan cheese, and croutons.\nServe immediately."
+            }
+        };
+
+        context.Recipes.AddRange(sampleRecipes);
+        context.SaveChanges();
+    }
 }
 
 // Configure the HTTP request pipeline
