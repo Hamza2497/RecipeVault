@@ -5,7 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import api from '../api/axios';
 
 // API base URL for unauthenticated requests
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5159/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 /*
  * RecipeDetailPage displays a single recipe with full details, AI features, and management options.
