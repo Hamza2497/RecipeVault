@@ -2,6 +2,11 @@
 
 This repository contains the backend API and frontend UI for the RecipeVault project.
 
+## Deployment
+
+- **Backend API:** https://recipevault-api-rtvd.onrender.com
+- **Frontend:** https://recipe-vault-flax.vercel.app
+
 ## Security & Secrets
 
 Sensitive keys (API keys, database URIs, etc.) should **never** be committed to Git. Configuration files like `appsettings.*.json` are ignored by default.
