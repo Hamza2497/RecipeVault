@@ -19,6 +19,14 @@ import { createContext, useState, useCallback, useEffect } from 'react';
 
 export const AuthContext = createContext();
 
+const safeJsonParse = (value) => {
+  try {
+    return value ? JSON.parse(value) : null;
+  } catch {
+    return null;
+  }
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
@@ -30,8 +38,9 @@ export function AuthProvider({ children }) {
       setToken(savedToken);
       // In a real app, you might fetch user details from API here
       const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
+      const parsedUser = safeJsonParse(savedUser);
+      if (parsedUser) {
+        setUser(parsedUser);
       }
     }
   }, []);
