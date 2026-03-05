@@ -194,6 +194,50 @@ public class AiController : ControllerBase
             return StatusCode(503, new { message = $"Gemini API unavailable: {ex.Message}" });
         }
     }
+
+    /// <summary>
+    /// POST /api/ai/generate-image
+    /// Generates a recipe image URL using Gemini and Unsplash.
+    ///
+    /// The request body must contain a GenerateImageRequestDto JSON object.
+    /// Example:
+    /// {
+    ///   "recipeName": "Pasta Carbonara",
+    ///   "cuisineType": "Italian"
+    /// }
+    ///
+    /// HTTP Response Codes:
+    /// 200 OK - Image generated successfully, returns { "imageUrl": "string" }
+    /// 400 Bad Request - Invalid request (validation failed)
+    /// 401 Unauthorized - User not authenticated (no valid JWT token)
+    /// 503 Service Unavailable - Error calling Gemini API or Unsplash API
+    ///
+    /// [FromBody] tells ASP.NET to deserialize the JSON request body into the DTO.
+    /// </summary>
+    [HttpPost("generate-image")]
+    public async Task<ActionResult<object>> GenerateRecipeImage([FromBody] GenerateImageRequestDto request)
+    {
+        try
+        {
+            // Call the Gemini service to generate the recipe image
+            // This uses Gemini to create an optimized search query and then calls Unsplash
+            var imageUrl = await _geminiService.GenerateRecipeImageAsync(
+                request.RecipeName,
+                request.CuisineType ?? string.Empty);
+
+            // If image generation failed, return 503
+            if (imageUrl == null)
+                return StatusCode(503, new { error = "Image generation failed." });
+
+            // Return 200 OK with the image URL
+            return Ok(new { imageUrl });
+        }
+        catch (Exception ex)
+        {
+            // Handle any other errors
+            return StatusCode(503, new { error = ex.Message });
+        }
+    }
 }
 
 /// <summary>

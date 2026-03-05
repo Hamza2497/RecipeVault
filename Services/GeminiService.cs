@@ -37,6 +37,11 @@ public class GeminiService : IGeminiService
     private readonly string _apiUrl;
 
     /// <summary>
+    /// The Unsplash API access key read from appsettings.json.
+    /// </summary>
+    private readonly string _unsplashAccessKey;
+
+    /// <summary>
     /// Constructor: receives the injected HttpClient and configuration.
     ///
     /// IConfiguration is automatically available in ASP.NET Core and contains
@@ -51,6 +56,10 @@ public class GeminiService : IGeminiService
         var geminiSettings = configuration.GetSection("GeminiSettings");
         _apiKey = geminiSettings["ApiKey"] ?? throw new InvalidOperationException("Gemini ApiKey not configured in appsettings.json");
         _apiUrl = geminiSettings["ApiUrl"] ?? throw new InvalidOperationException("Gemini ApiUrl not configured in appsettings.json");
+
+        // Read Unsplash settings from appsettings.json
+        var unsplashSettings = configuration.GetSection("UnsplashSettings");
+        _unsplashAccessKey = unsplashSettings["AccessKey"] ?? throw new InvalidOperationException("Unsplash AccessKey not configured in appsettings.json");
     }
 
     /// <summary>
@@ -138,6 +147,64 @@ public class GeminiService : IGeminiService
             ?? throw new InvalidOperationException("Failed to parse tweaked recipe from Gemini response");
 
         return tweakedRecipe;
+    }
+
+    /// <summary>
+    /// Generates a recipe image URL using Gemini and Unsplash API.
+    ///
+    /// This method:
+    /// 1. Uses Gemini to generate an optimized Unsplash search query for the recipe
+    /// 2. Calls the Unsplash API with that search query
+    /// 3. Extracts the image URL from the response
+    /// 4. Returns null if any step fails
+    /// </summary>
+    public async Task<string?> GenerateRecipeImageAsync(string recipeName, string cuisineType)
+    {
+        try
+        {
+            // Build the prompt asking Gemini for an optimized search query
+            var prompt = BuildImageSearchPrompt(recipeName, cuisineType);
+
+            // Call Gemini to get the search query
+            var searchQuery = await CallGeminiAsync(prompt);
+
+            Console.WriteLine($"Unsplash search query from Gemini: {searchQuery}");
+
+            // Call the Unsplash API with the search query
+            var unsplashUrl = $"https://api.unsplash.com/search/photos?query={Uri.EscapeDataString(searchQuery)}&per_page=1&orientation=landscape&client_id={_unsplashAccessKey}";
+
+            var response = await _httpClient.GetAsync(unsplashUrl);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Unsplash API error: {response.StatusCode}");
+                return null;
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            // Parse the Unsplash response to extract the image URL
+            var jsonResponse = JsonDocument.Parse(responseContent);
+            var results = jsonResponse.RootElement.GetProperty("results");
+
+            if (results.GetArrayLength() == 0)
+            {
+                Console.WriteLine("No image found in Unsplash response");
+                return null;
+            }
+
+            var imageUrl = results[0]
+                .GetProperty("urls")
+                .GetProperty("regular")
+                .GetString();
+
+            return imageUrl;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error generating recipe image: {ex.Message}");
+            return null;
+        }
     }
 
     /// <summary>
@@ -349,6 +416,32 @@ public class GeminiService : IGeminiService
         sb.AppendLine("  \"cookTimeMinutes\": 30,");
         sb.AppendLine("  \"servings\": 4");
         sb.AppendLine("}");
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Builds the prompt for generating a recipe image search query.
+    ///
+    /// This prompt asks Gemini to generate a single, optimized Unsplash
+    /// search query for a food photo of the given recipe and cuisine type.
+    /// The response is expected to be plain text only, no JSON, no explanation.
+    /// </summary>
+    private static string BuildImageSearchPrompt(string recipeName, string cuisineType)
+    {
+        var sb = new StringBuilder();
+        sb.Append("You are a search query expert. Return ONLY a short, optimized Unsplash search query for a high-quality food photo of \"");
+        sb.Append(recipeName);
+        sb.Append("\"");
+
+        if (!string.IsNullOrEmpty(cuisineType))
+        {
+            sb.Append(" (");
+            sb.Append(cuisineType);
+            sb.Append(" cuisine)");
+        }
+
+        sb.AppendLine(". Return plain text only — no explanation, no punctuation around it, no quotes.");
 
         return sb.ToString();
     }

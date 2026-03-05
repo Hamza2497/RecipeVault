@@ -57,4 +57,18 @@ public interface IGeminiService
     /// flexible requests like "reduce cook time", "add more vegetables", "make it keto", etc.
     /// </summary>
     Task<AiRecipeResponseDto> TweakRecipeAsync(AiRecipeResponseDto currentRecipe, string tweakRequest);
+
+    /// <summary>
+    /// Generates a food image URL for a recipe using Gemini and Unsplash.
+    ///
+    /// This method:
+    /// 1. Takes a recipe name and cuisine type
+    /// 2. Sends a prompt to Gemini asking for an optimized Unsplash search query
+    /// 3. Uses the returned query to search Unsplash API for a landscape food photo
+    /// 4. Extracts and returns the image URL
+    /// 5. Returns null if any step fails
+    ///
+    /// The returned URL is a high-quality, landscape-oriented food photograph.
+    /// </summary>
+    Task<string?> GenerateRecipeImageAsync(string recipeName, string cuisineType);
 }
