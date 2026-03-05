@@ -105,6 +105,13 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+// Apply pending migrations automatically on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
 // Database Seeder: Initialize the database with test data on startup
 // This code runs once when the application starts, before any HTTP requests are handled.
 //
