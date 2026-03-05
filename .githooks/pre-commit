@@ -1,0 +1,20 @@
+#!/bin/sh
+# Simple pre-commit hook to prevent accidental secrets from being committed.
+# Place any regex patterns you want to block below.
+
+# List of regex patterns we consider sensitive (adjust as needed)
+PATTERNS='AIza|AKIA|SECRET|PRIVATE[_-]KEY|PASSWORD|TOKEN'
+
+# Scan staged files for the patterns
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.json$|\.env$|\.cs$' || true)
+if [ -n "$FILES" ]; then
+  for f in $FILES; do
+    if git show :"$f" | grep -nE "$PATTERNS" >/dev/null; then
+      echo "ERROR: potential secret found in $f"
+      echo "Please remove sensitive data or add the file to .gitignore."
+      exit 1
+    fi
+  done
+fi
+
+exit 0
