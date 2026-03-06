@@ -208,7 +208,7 @@ public class AiController : ControllerBase
     ///
     /// HTTP Response Codes:
     /// 200 OK - Image generated successfully, returns { "imageUrl": "string" }
-    /// 400 Bad Request - Invalid request (validation failed)
+    /// 400 Bad Request - Recipe name does not appear to be a food item
     /// 401 Unauthorized - User not authenticated (no valid JWT token)
     /// 503 Service Unavailable - Error calling Gemini API or Unsplash API
     ///
@@ -225,9 +225,9 @@ public class AiController : ControllerBase
                 request.RecipeName,
                 request.CuisineType ?? string.Empty);
 
-            // If image generation failed, return 503
+            // If image generation failed (including NOT_FOOD validation), return 400 Bad Request
             if (imageUrl == null)
-                return StatusCode(503, new { error = "Image generation failed." });
+                return BadRequest(new { message = "Recipe name does not appear to be a food item." });
 
             // Return 200 OK with the image URL
             return Ok(new { imageUrl });

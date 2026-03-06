@@ -154,9 +154,10 @@ public class GeminiService : IGeminiService
     ///
     /// This method:
     /// 1. Uses Gemini to generate an optimized Unsplash search query for the recipe
-    /// 2. Calls the Unsplash API with that search query
-    /// 3. Extracts the image URL from the response
-    /// 4. Returns null if any step fails
+    /// 2. If Gemini returns "NOT_FOOD", returns null (input is not a food item)
+    /// 3. Calls the Unsplash API with that search query
+    /// 4. Extracts the image URL from the response
+    /// 5. Returns null if any step fails
     /// </summary>
     public async Task<string?> GenerateRecipeImageAsync(string recipeName, string cuisineType)
     {
@@ -169,6 +170,13 @@ public class GeminiService : IGeminiService
             var searchQuery = await CallGeminiAsync(prompt);
 
             Console.WriteLine($"Unsplash search query from Gemini: {searchQuery}");
+
+            // Check if Gemini determined the input is not a food item
+            if (searchQuery.Equals("NOT_FOOD", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"Input '{recipeName}' does not appear to be a food item");
+                return null;
+            }
 
             // Call the Unsplash API with the search query
             var unsplashUrl = $"https://api.unsplash.com/search/photos?query={Uri.EscapeDataString(searchQuery)}&per_page=1&orientation=landscape&client_id={_unsplashAccessKey}";
@@ -426,11 +434,21 @@ public class GeminiService : IGeminiService
     /// This prompt asks Gemini to generate a single, optimized Unsplash
     /// search query for a food photo of the given recipe and cuisine type.
     /// The response is expected to be plain text only, no JSON, no explanation.
+    ///
+    /// Special handling:
+    /// - If the input does not appear to be a food or recipe name, return exactly "NOT_FOOD"
+    /// - Otherwise, return a search query optimized for plated dish food photography
     /// </summary>
     private static string BuildImageSearchPrompt(string recipeName, string cuisineType)
     {
         var sb = new StringBuilder();
-        sb.Append("You are a search query expert. Return ONLY a short, optimized Unsplash search query for a high-quality food photo of \"");
+        sb.AppendLine("You are a search query expert for finding food photography on Unsplash.");
+        sb.AppendLine();
+        sb.AppendLine("First, check if the input appears to be a food or recipe name:");
+        sb.AppendLine("- If the input is clearly NOT food-related (e.g., \"cat\", \"dog\", \"car\", \"person\", \"landscape\"), return EXACTLY: NOT_FOOD");
+        sb.AppendLine("- Otherwise, proceed to generate the search query.");
+        sb.AppendLine();
+        sb.Append("Generate a short, optimized Unsplash search query for a high-quality plated food photography of \"");
         sb.Append(recipeName);
         sb.Append("\"");
 
@@ -441,7 +459,14 @@ public class GeminiService : IGeminiService
             sb.Append(" cuisine)");
         }
 
-        sb.AppendLine(". Return plain text only — no explanation, no punctuation around it, no quotes.");
+        sb.AppendLine(".");
+        sb.AppendLine();
+        sb.AppendLine("The search query MUST:");
+        sb.AppendLine("- Include words like \"plated\", \"dish\", \"food photography\", or \"recipe\"");
+        sb.AppendLine("- Target plated dish food photography ONLY");
+        sb.AppendLine("- Avoid fields, landscapes, animals, farms, or raw ingredients in nature");
+        sb.AppendLine();
+        sb.AppendLine("Return ONLY the search query as plain text — no explanation, no punctuation around it, no quotes.");
 
         return sb.ToString();
     }
