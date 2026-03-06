@@ -45,7 +45,7 @@ export function Navbar() {
           </Link>
 
           {/* Navigation links in the middle (only when logged in) */}
-          <div className="flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-6">
             {isAuthenticated && (
               <>
                 <Link to="/" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition">
@@ -71,7 +71,7 @@ export function Navbar() {
 
             {/* Logout button (only when logged in) */}
             {isAuthenticated && (
-              <div className="flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-3">
                 <span className="text-sm text-gray-600 dark:text-gray-400">
                   {user?.email || 'User'}
                 </span>
@@ -86,7 +86,7 @@ export function Navbar() {
 
             {/* Login and Register buttons (only when not logged in) */}
             {!isAuthenticated && (
-              <div className="flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-3">
                 <button
                   onClick={() => navigate('/login')}
                   className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition text-sm font-medium"
