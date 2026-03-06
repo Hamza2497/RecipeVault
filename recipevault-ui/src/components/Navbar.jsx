@@ -8,14 +8,8 @@ import { ThemeContext } from '../context/ThemeContext';
  *
  * It displays:
  * - App logo/name on the left (links to home)
- * - Navigation links in the middle (only visible when authenticated)
- * - Dark/light mode toggle button
- * - Logout button (only visible when authenticated)
- *
- * Why split the layout?
- * - Tailwind's flexbox utilities let us push items to opposite ends
- * - Using justify-between spreads items: logo left, buttons right
- * - This looks professional without writing custom CSS
+ * - Dark/light mode toggle button (middle/right)
+ * - Logout button when authenticated, or Login + Register when not
  *
  * The component uses useContext to access:
  * - AuthContext: to check if user is logged in and call logout()
@@ -23,7 +17,7 @@ import { ThemeContext } from '../context/ThemeContext';
  */
 
 export function Navbar() {
-  const { isAuthenticated, logout, user } = useContext(AuthContext);
+  const { isAuthenticated, logout } = useContext(AuthContext);
   const { theme, toggle } = useContext(ThemeContext);
   const navigate = useNavigate();
 
@@ -44,21 +38,7 @@ export function Navbar() {
             🍳 RecipeVault
           </Link>
 
-          {/* Navigation links in the middle (only when logged in) */}
-          <div className="hidden md:flex items-center gap-6">
-            {isAuthenticated && (
-              <>
-                <Link to="/" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition">
-                  Recipes
-                </Link>
-                <Link to="/recipes/new" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition">
-                  Add Recipe
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Dark mode toggle and logout on the right */}
+          {/* Dark mode toggle and authentication buttons on the right */}
           <div className="flex items-center gap-4">
             {/* Dark mode toggle button */}
             <button
@@ -71,17 +51,12 @@ export function Navbar() {
 
             {/* Logout button (only when logged in) */}
             {isAuthenticated && (
-              <div className="hidden md:flex items-center gap-3">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {user?.email || 'User'}
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition text-sm font-medium"
-                >
-                  Logout
-                </button>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition text-sm font-medium"
+              >
+                Logout
+              </button>
             )}
 
             {/* Login and Register buttons (only when not logged in) */}
