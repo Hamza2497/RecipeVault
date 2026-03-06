@@ -179,7 +179,7 @@ public class GeminiService : IGeminiService
             }
 
             // Call the Unsplash API with the search query
-            var unsplashUrl = $"https://api.unsplash.com/search/photos?query={Uri.EscapeDataString(searchQuery)}&per_page=1&orientation=landscape&content_filter=high&order_by=relevant&client_id={_unsplashAccessKey}";
+            var unsplashUrl = $"https://api.unsplash.com/search/photos?query={Uri.EscapeDataString(searchQuery)}&per_page=5&orientation=landscape&content_filter=high&order_by=relevant&client_id={_unsplashAccessKey}";
 
             var response = await _httpClient.GetAsync(unsplashUrl);
 
@@ -201,7 +201,9 @@ public class GeminiService : IGeminiService
                 return null;
             }
 
-            var imageUrl = results[0]
+            // Pick a random image from the results to ensure variety
+            var randomIndex = new Random().Next(results.GetArrayLength());
+            var imageUrl = results[randomIndex]
                 .GetProperty("urls")
                 .GetProperty("regular")
                 .GetString();
