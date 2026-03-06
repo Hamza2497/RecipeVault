@@ -431,42 +431,36 @@ public class GeminiService : IGeminiService
     /// <summary>
     /// Builds the prompt for generating a recipe image search query.
     ///
-    /// This prompt asks Gemini to generate a single, optimized Unsplash
-    /// search query for a food photo of the given recipe and cuisine type.
-    /// The response is expected to be plain text only, no JSON, no explanation.
+    /// This prompt asks Gemini to generate a short, optimized Unsplash search query
+    /// for a plated food photo of the given recipe. The response is expected to be
+    /// plain text only, no JSON, no explanation.
     ///
     /// Special handling:
     /// - If the input does not appear to be a food or recipe name, return exactly "NOT_FOOD"
-    /// - Otherwise, return a search query optimized for plated dish food photography
+    /// - Otherwise, return a 3-5 word search query optimized for plated dish food photography
     /// </summary>
     private static string BuildImageSearchPrompt(string recipeName, string cuisineType)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("You are a search query expert for finding food photography on Unsplash.");
+        sb.AppendLine("You are a search query generator for Unsplash food photography.");
         sb.AppendLine();
-        sb.AppendLine("First, check if the input appears to be a food or recipe name:");
-        sb.AppendLine("- If the input is clearly NOT food-related (e.g., \"cat\", \"dog\", \"car\", \"person\", \"landscape\"), return EXACTLY: NOT_FOOD");
-        sb.AppendLine("- Otherwise, proceed to generate the search query.");
+        sb.AppendLine("Your job: given a recipe name, generate a short Unsplash search query (3-5 words) that will return professional, appetizing photos of the FINISHED, PLATED DISH only.");
         sb.AppendLine();
-        sb.Append("Generate a short, optimized Unsplash search query for a high-quality plated food photography of \"");
-        sb.Append(recipeName);
-        sb.Append("\"");
-
-        if (!string.IsNullOrEmpty(cuisineType))
-        {
-            sb.Append(" (");
-            sb.Append(cuisineType);
-            sb.Append(" cuisine)");
-        }
-
-        sb.AppendLine(".");
+        sb.AppendLine("Rules:");
+        sb.AppendLine("- Always end the query with \"plated dish\" or \"food photography\"");
+        sb.AppendLine("- Never use words that could return landscapes, fields, farms, or animals");
+        sb.AppendLine("- The photo must show the cooked meal served on a plate or bowl");
+        sb.AppendLine("- If the input is NOT a food or recipe (e.g. \"dog\", \"cat\", \"car\", \"person\", \"tree\"), respond with exactly: NOT_FOOD");
         sb.AppendLine();
-        sb.AppendLine("The search query MUST:");
-        sb.AppendLine("- Include words like \"plated\", \"dish\", \"food photography\", or \"recipe\"");
-        sb.AppendLine("- Target plated dish food photography ONLY");
-        sb.AppendLine("- Avoid fields, landscapes, animals, farms, or raw ingredients in nature");
+        sb.AppendLine("Examples:");
+        sb.AppendLine("- \"white rice\" → \"steamed white rice plated dish\"");
+        sb.AppendLine("- \"spaghetti\" → \"spaghetti pasta plated food photography\"");
+        sb.AppendLine("- \"dog\" → NOT_FOOD");
+        sb.AppendLine("- \"cat\" → NOT_FOOD");
         sb.AppendLine();
-        sb.AppendLine("Return ONLY the search query as plain text — no explanation, no punctuation around it, no quotes.");
+        sb.AppendLine($"Recipe name: {recipeName}");
+        sb.AppendLine();
+        sb.AppendLine("Respond with ONLY the search query or NOT_FOOD. No explanation, no punctuation, no quotes.");
 
         return sb.ToString();
     }
